@@ -5,82 +5,102 @@ import sys
 import os
 
 class Cell:
-    def __init__(self, x, y):
+    def __init__(self, x, y, state="#"):
         self.x = x
         self.y = y
-        self.state = "#"
+        self.state = state
 
     def move(self, model):
 
         return True
 
     def copy(self):
-        return Cell(self.x, self.y)
+        return Cell(self.x, self.y, self.state)
 
+    def __str__(self):
+        return self.state
+
+    def __repr__(self):
+        return str(self)
+
+
+class GoLCell(Cell):
+    def move(self, model):
+        counter = 0
+        for i in range(9):
+            if model.getGrid()[(self.y+i%3-1)%model.y][(self.x+i//3-1)%model.x].state == "O":
+                counter += 1
+        if self.state == "O":
+            counter -= 1
+            if counter < 2 or counter >= 4:
+                self.state = "#"
+        else:
+            if counter == 3:
+                self.state = "O"
+        return True
 
 class LengthError(Exception):
     pass
 
+
 class Model:
-    def __init__(self, xlen, ylen, num_cells, cell_type, seed=None):
-        grid = [[None for x in range(xlen)] for y in range(ylen)]
+    def __init__(self, xlen, ylen, cell_type, num_cells=0, seed=None):
+        self.cg = [[None for x in range(xlen)] for y in range(ylen)]
+        self.g = [[None for x in range(xlen)] for y in range(ylen)]
         if num_cells > xlen*ylen:
             raise LengthError("Error: Your number of cells is greater than the area of the grid")
         self.x = xlen
         self.y = ylen
         self.l = xlen*ylen
-        self.c = []
         self.t = cell_type
         if seed:
-            num = 0
-            for i in seed:
-                if i == "1": num += 1
-            if len(seed) != self.l or num != num_cells:
-                raise LengthError("Error: Your seed does not match the details entered")
-            else:
-                for i in range(self.l):
-                    if seed[i] == "1":
-                        self.c.append(cell_type(i//xlen, i%xlen))
-                return
-        for i in range(num_cells):
-            cell = None
-            while cell == None:
-                pos = (random.randint(0,ylen-1),random.randint(0,xlen-1))
-                if grid[pos[0]][pos[1]] is None:
-                    cell = cell_type(pos[0], pos[1])
-                    grid[pos[0]][pos[1]] = cell.copy()
-                    self.c.append(cell.copy())
+            for i in range(self.l):
+                self.g[i//ylen][i%xlen] = cell_type(i//ylen, i%xlen)
+                self.g[i//ylen][i%xlen].state = seed[i//self.y][i%self.x]
+        else:
+            for i in range(num_cells):
+                cell = None
+                while cell == None:
+                    pos = (random.randint(0,ylen-1),random.randint(0,xlen-1))
+                    if self.g[pos[0]][pos[1]] is None:
+                        cell = cell_type(pos[0], pos[1])
+                        self.g[pos[0]][pos[1]] = cell.copy()
+
+        self.generate_cg()
+
+    def getGrid(self):
+        return self.cg
 
     def show(self):
         os.system('cls' if os.name == 'nt' else 'clear')
-        output = [["-" for x in range(self.x)] for y in range(self.y)]
-        for i in self.c:
-            output[i.y][i.x] = i.state
-
+        output = [[self.g[y][x].state for x in range(self.x)] for y in range(self.y)]
         s = ""
-        for y in range(len(output)-1,-1,-1):
+        for y in range(self.y-1,-1,-1):
             for x in output[y]:
                 s += x
             s += "\n"
 
         print(s)
 
-    def generate_list(self):
+    def generate_cg(self):
         output = [[None for x in range(self.x)] for y in range(self.y)]
-        for i in self.c:
-            output[i.y][i.x] = i.copy()
+        for y in self.g:
+            for x in y:
+                output[x.y][x.x] = x.copy()
+        self.cg = output
 
     def update(self):
         dels = []
-        self.generate_list()
-        for i in self.c:
-            if not i.move(self):
-                dels.append(i)
+        for y in self.g:
+            for x in y:
+                if not x.move(self):
+                    dels.append([x.x,x.y])
 
         for i in dels:
-            self.c.remove(i)
+            self.g[i[1]].pop(i[0])
 
-        return self.c
+        self.generate_cg()
+        return self.g
 
 def usage():
     print()
@@ -98,6 +118,17 @@ def usage():
 
 def str_to_class(str):
     return getattr(sys.modules[__name__], str)
+
+def run_model(model, delay):
+    model.show()
+    while model.update():
+        model.show()
+        time.sleep(delay)
+
+def run(xlength, ylength, cell, seed, delay=0.1):
+    new_model = Model(xlength, ylength, cell, seed=seed)
+    run_model(new_model, delay)
+
 
 def main():
     try:
@@ -128,10 +159,8 @@ def main():
     if not (x and y and num and cell):
         usage()
     else:
-        new_model = Model(x, y, num, cell)
-        while new_model.update():
-            new_model.show()
-            time.sleep(delay)
+        new_model = Model(x, y, cell, num=num)
+        run_model(new_model, delay)
 
 if __name__ == "__main__":
     main()

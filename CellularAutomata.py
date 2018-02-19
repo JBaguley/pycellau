@@ -24,6 +24,9 @@ def usage():
     print("-d --delay: Delay between each iteration, for display purposes. Default 0.1s")
     print()
 
+run3D = CellularAutomata3D.run
+
+
 if __name__ == "__main__":
     try:
         opts, args = getopt.getopt(sys.argv[1:],"hl:n:c:d",
