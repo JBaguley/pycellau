@@ -10,7 +10,7 @@ class Cell:
         self.l = location
         self.s = state
 
-    def move(self, model):
+    def update(self, model):
         return True
 
     def copy(self):
@@ -26,14 +26,13 @@ class TrafficCell(Cell):
     off = "-"
     on = "O"
 
-    def move(self, model):
+    def update(self, model):
         if self.s == self.on and self.l == model.l-1:
             self.s = self.off
         elif self.s == self.off and model.getTape()[self.l-1].s == self.on and self.l != 0:
             self.s = self.on
         elif self.s == self.on and model.getTape()[self.l+1].s == self.off:
             self.s = self.off
-        return True
 
 
 class LengthError(Exception):
@@ -94,7 +93,7 @@ class Model:
     def update(self):
         s = ""
         for i in self.c:
-            i.move(self)
+            i.update(self)
             s+= str(i)
         print(s)
         self.generate_list()

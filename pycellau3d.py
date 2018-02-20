@@ -13,7 +13,7 @@ class Cell:
         self.y = y
         self.s = state
 
-    def move(self, model):
+    def update(self, model):
         return True
 
     def copy(self):
@@ -30,7 +30,7 @@ class GoLCell(Cell):
     off = "#"
     on = "O"
 
-    def move(self, model):
+    def update(self, model):
         counter = 0
         for i in range(9):
             if model.getGrid()[(self.y+i%3-1)%model.y][(self.x+i//3-1)%model.x].s == self.on:
@@ -39,7 +39,6 @@ class GoLCell(Cell):
             counter -= 1
             if counter < 2 or counter >= 4:
                 self.s = self.off
-                return True
         else:
             if counter == 3:
                 self.s = self.on
@@ -61,9 +60,9 @@ class Model:
         self.l = xlen*ylen
         self.t = cell_type
         if seed:
-            for i in range(self.l):
-                self.g[i//ylen][i%xlen] = cell_type(i//ylen, i%xlen)
-                self.g[i//ylen][i%xlen].s = seed[i//self.y][i%self.x]
+            for y in range(self.y):
+                for x in range(self.x):
+                    self.g[y][x] = cell_type(x, y, seed[y][x])
         else:
             for i in range(self.l):
                 cell = cell_type(i%xlen,i//ylen,cell_type.off)
@@ -101,7 +100,7 @@ class Model:
     def update(self):
         for y in self.g:
             for x in y:
-                x.move(self)
+                x.update(self)
         self.generate_cg()
         return True
 
