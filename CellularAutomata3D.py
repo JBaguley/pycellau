@@ -5,38 +5,44 @@ import sys
 import os
 
 class Cell:
-    def __init__(self, x, y, state="#"):
+    off = "#"
+    on = "O"
+
+    def __init__(self, x, y, state=off):
         self.x = x
         self.y = y
-        self.state = state
+        self.s = state
 
     def move(self, model):
         return True
 
     def copy(self):
-        return type(self)(self.x, self.y, self.state)
+        return type(self)(self.x, self.y, self.s)
 
     def __str__(self):
-        return self.state
+        return self.s
 
     def __repr__(self):
         return str(self)
 
 
 class GoLCell(Cell):
+    off = "#"
+    on = "O"
+
     def move(self, model):
         counter = 0
         for i in range(9):
-            if model.getGrid()[(self.y+i%3-1)%model.y][(self.x+i//3-1)%model.x].state == "O":
+            if model.getGrid()[(self.y+i%3-1)%model.y][(self.x+i//3-1)%model.x].s == self.on:
                 counter += 1
-        if self.state == "O":
+        if self.s == self.on:
             counter -= 1
             if counter < 2 or counter >= 4:
-                self.state = "#"
+                self.s = self.off
                 return True
         else:
             if counter == 3:
-                self.state = "O"
+                self.s = self.on
                 return True
 
 
@@ -57,15 +63,18 @@ class Model:
         if seed:
             for i in range(self.l):
                 self.g[i//ylen][i%xlen] = cell_type(i//ylen, i%xlen)
-                self.g[i//ylen][i%xlen].state = seed[i//self.y][i%self.x]
+                self.g[i//ylen][i%xlen].s = seed[i//self.y][i%self.x]
         else:
+            for i in range(self.l):
+                cell = cell_type(i%xlen,i//ylen,cell_type.off)
+                self.g[i//ylen][i%xlen] = cell.copy()
+
             for i in range(num_cells):
-                cell = None
-                while cell == None:
-                    pos = (random.randint(0,ylen-1),random.randint(0,xlen-1))
-                    if self.g[pos[0]][pos[1]] is None:
-                        cell = cell_type(pos[0], pos[1])
-                        self.g[pos[0]][pos[1]] = cell.copy()
+                cell = self.g[random.randint(0,ylen-1)][random.randint(0,xlen-1)]
+                while cell.s != cell_type.off:
+                    cell = self.g[random.randint(0,ylen-1)][random.randint(0,xlen-1)]
+                cell.s = cell_type.on
+
 
         self.generate_cg()
 
@@ -74,7 +83,7 @@ class Model:
 
     def show(self):
         os.system('cls' if os.name == 'nt' else 'clear')
-        output = [[self.g[y][x].state for x in range(self.x)] for y in range(self.y)]
+        output = [[self.g[y][x].s for x in range(self.x)] for y in range(self.y)]
         s = ""
         for y in range(self.y-1,-1,-1):
             for x in output[y]:
@@ -126,14 +135,30 @@ def run(xlength, ylength, cell, seed, delay=0.1):
 
 
 def main():
+    ins = ["-h","-x","-y","-c","-n","-d"]
+    insWord = ["--help", "--xlength", "--ylength", "--cell", "--num", "--delay"]
+    opts = []
+    used = []
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hx:y:c:n:d",
-                                   ["help", "xlength", "ylength", "cell", "num", "delay"])
-    except getopt.GetoptError as err:
-        print(str(err))
+        print(len(sys.argv[1:]))
+        for i in range(0,len(sys.argv[1:]),2):
+            print(i)
+            if (sys.argv[1+i] in ins or sys.argv[1+i] in insWord) and sys.argv[1+i] not in used:
+                opts.append([sys.argv[1+i],sys.argv[2+i]])
+                used.append(sys.argv[1+i])
+            else:
+                raise ValueError("Parameter error, either parameter does not exist or has been repeated: "+str(sys.argv[1+i]))
+
+
+
+
+    except ValueError as err:
+        print(err)
         usage()
         sys.exit()
+
     x, y, num, cell, delay = None, None, None, None, 0.1
+    print(opts)
     for o, a in opts:
         if o in ("-h","--help"):
             usage()

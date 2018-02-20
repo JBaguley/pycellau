@@ -27,12 +27,12 @@ class TrafficCell(Cell):
     on = "O"
 
     def move(self, model):
-        if self.s == "O" and self.l == model.l-1:
-            self.s = "-"
-        elif self.s == "-" and model.getTape()[self.l-1].s == "O" and self.l != 0:
-            self.s = "O"
-        elif self.s == "O" and model.getTape()[self.l+1].s == "-":
-            self.s = "-"
+        if self.s == self.on and self.l == model.l-1:
+            self.s = self.off
+        elif self.s == self.off and model.getTape()[self.l-1].s == self.on and self.l != 0:
+            self.s = self.on
+        elif self.s == self.on and model.getTape()[self.l+1].s == self.off:
+            self.s = self.off
         return True
 
 

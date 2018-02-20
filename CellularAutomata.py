@@ -28,6 +28,8 @@ Cell2D = CellularAutomata2D.Cell
 Cell3D = CellularAutomata3D.Cell
 run2D = CellularAutomata2D.run
 run3D = CellularAutomata3D.run
+
+"""
 seed = ["-","O","-","O","-","O","-","O","O","O","O","-","-","O","-","O","-","O"]
 run2D(len(seed), CellularAutomata2D.TrafficCell, seed)
 seed = [
@@ -78,4 +80,3 @@ if __name__ == "__main__":
     else:
         usage()
         sys.exit()
-"""
