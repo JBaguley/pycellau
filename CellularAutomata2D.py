@@ -14,7 +14,7 @@ class Cell:
         return True
 
     def copy(self):
-        return Cell(self.l, self.s)
+        return type(self)(self.l, self.s)
 
     def __str__(self):
         return self.s
