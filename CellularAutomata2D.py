@@ -4,51 +4,70 @@ import getopt
 import sys
 
 class Cell:
-    def __init__(self, location):
+    off = "#"
+    on = "O"
+    def __init__(self, location, state=off):
         self.l = location
-        self.s = "#"
+        self.s = state
 
     def move(self, model):
-        if self.l == model.l-1:
-            self.l += 1
-        elif self.l == model.l or model.i[self.l+1] is None:
-            self.l += 1
-        return self.l<model.l
+        return True
 
     def copy(self):
-        return Cell(self.l)
+        return Cell(self.l, self.s)
+
+    def __str__(self):
+        return self.s
+
+    def __repr__(self):
+        return str(self)
+
+class TrafficCell(Cell):
+    off = "-"
+    on = "O"
+
+    def move(self, model):
+        if self.s == "O" and self.l == model.l-1:
+            self.s = "-"
+        elif self.s == "-" and model.getTape()[self.l-1].s == "O" and self.l != 0:
+            self.s = "O"
+        elif self.s == "O" and model.getTape()[self.l+1].s == "-":
+            self.s = "-"
+        return True
 
 
 class LengthError(Exception):
     pass
 
 class Model:
-    def __init__(self, length, num_cells, cell_type, seed=None):
-        tape = [None for i in range(length)]
+    def __init__(self, length, cell_type, num_cells=0, seed=None):
         if num_cells > length:
             raise LengthError("Error: Your number of cells is greater than the length of your tape")
         self.l = length
         self.c = []
         self.t = cell_type
         if seed:
-            num = 0
-            for i in seed:
-                if i == "1": num += 1
-            if len(seed) != length or num != num_cells:
+            if len(seed) != length :
                 raise LengthError("Error: Your seed does not match the details entered")
             else:
                 for i in range(length):
-                    if seed[i] == "1":
-                        self.c.append(cell_type(i))
-                return
-        for i in range(num_cells):
-            cell = None
-            while cell == None:
-                pos = random.randint(0,length-1)
-                if tape[pos] is None:
-                    cell = cell_type(pos)
-                    tape[pos] = cell.copy()
-                    self.c.append(cell.copy())
+                    self.c.append(cell_type(i, seed[i]))
+        else:
+            for i in range(length):
+                cell = cell_type(i,cell_type.off)
+                self.c.append(cell.copy())
+
+            for i in range(num_cells):
+                cell = self.c[random.randint(0,length-1)]
+                while cell.s != cell_type.off:
+                    cell = self.c[random.randint(0,length-1)]
+                cell.s = cell_type.on
+
+        self.i = [None for i in range(self.l)]
+        for i in self.c:
+            self.i[i.l] = i.copy()
+
+        self.generate_list()
 
     def show(self):
         output = ["-" for i in range(self.l)]
@@ -61,22 +80,29 @@ class Model:
 
         print(s)
 
+    def getTape(self):
+        return self.i
+
     def generate_list(self):
+        self.p = []
+        for i in self.i:
+            self.p.append(i.copy())
         self.i = [None for i in range(self.l)]
         for i in self.c:
             self.i[i.l] = i.copy()
 
     def update(self):
-        dels = []
-        self.generate_list()
+        s = ""
         for i in self.c:
-            if not i.move(self):
-                dels.append(i)
+            i.move(self)
+            s+= str(i)
+        print(s)
+        self.generate_list()
+        for i in range(len(self.c)):
+            if str(self.p[i]) != str(self.c[i]):
+                return True
 
-        for i in dels:
-            self.c.remove(i)
-
-        return self.c
+        return False
 
 def usage():
     print()
@@ -94,10 +120,20 @@ def usage():
 def str_to_class(str):
     return getattr(sys.modules[__name__], str)
 
+def run_model(model, delay):
+    model.show()
+    while model.update():
+        model.show()
+        time.sleep(delay)
+
+def run(length, cell, seed, delay=0.1):
+    new_model = Model(length, cell, seed=seed)
+    run_model(new_model, delay)
+
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hl:n:c:d",
-                                   ["help", "length", "num", "cell", "delay"])
+        opts, args = getopt.getopt(sys.argv[1:],"hl:c:n:d",
+                                   ["help", "length", "cell", "num", "delay"])
     except getopt.GetoptError as err:
         print(str(err))
         usage()
@@ -121,10 +157,8 @@ def main():
     if not (length and num and cell):
         usage()
     else:
-        new_model = Model(length, num, cell)
-        while new_model.update():
-            new_model.show()
-            time.sleep(delay)
+        new_model = Model(length, cell, num)
+        run_model(new_model, delay)
 
 if __name__ == "__main__":
     main()

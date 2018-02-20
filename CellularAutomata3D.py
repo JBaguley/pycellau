@@ -11,7 +11,6 @@ class Cell:
         self.state = state
 
     def move(self, model):
-
         return True
 
     def copy(self):
@@ -34,10 +33,12 @@ class GoLCell(Cell):
             counter -= 1
             if counter < 2 or counter >= 4:
                 self.state = "#"
+                return True
         else:
             if counter == 3:
                 self.state = "O"
-        return True
+                return True
+
 
 class LengthError(Exception):
     pass
@@ -83,24 +84,18 @@ class Model:
         print(s)
 
     def generate_cg(self):
-        output = [[None for x in range(self.x)] for y in range(self.y)]
+        self.cg = [[None for x in range(self.x)] for y in range(self.y)]
         for y in self.g:
             for x in y:
-                output[x.y][x.x] = x.copy()
-        self.cg = output
+                self.cg[x.y][x.x] = x.copy()
 
     def update(self):
-        dels = []
         for y in self.g:
             for x in y:
-                if not x.move(self):
-                    dels.append([x.x,x.y])
-
-        for i in dels:
-            self.g[i[1]].pop(i[0])
-
+                x.move(self)
         self.generate_cg()
-        return self.g
+        return True
+
 
 def usage():
     print()
@@ -132,8 +127,8 @@ def run(xlength, ylength, cell, seed, delay=0.1):
 
 def main():
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hx:y:n:c:d",
-                                   ["help", "xlength", "ylength", "num", "cell", "delay"])
+        opts, args = getopt.getopt(sys.argv[1:],"hx:y:c:n:d",
+                                   ["help", "xlength", "ylength", "cell", "num", "delay"])
     except getopt.GetoptError as err:
         print(str(err))
         usage()
@@ -159,7 +154,7 @@ def main():
     if not (x and y and num and cell):
         usage()
     else:
-        new_model = Model(x, y, cell, num=num)
+        new_model = Model(x, y, cell, num_cells=num)
         run_model(new_model, delay)
 
 if __name__ == "__main__":
