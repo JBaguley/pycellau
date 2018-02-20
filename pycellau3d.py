@@ -139,17 +139,12 @@ def main():
     opts = []
     used = []
     try:
-        print(len(sys.argv[1:]))
         for i in range(0,len(sys.argv[1:]),2):
-            print(i)
             if (sys.argv[1+i] in ins or sys.argv[1+i] in insWord) and sys.argv[1+i] not in used:
                 opts.append([sys.argv[1+i],sys.argv[2+i]])
                 used.append(sys.argv[1+i])
             else:
                 raise ValueError("Parameter error, either parameter does not exist or has been repeated: "+str(sys.argv[1+i]))
-
-
-
 
     except ValueError as err:
         print(err)
@@ -157,7 +152,6 @@ def main():
         sys.exit()
 
     x, y, num, cell, delay = None, None, None, None, 0.1
-    print(opts)
     for o, a in opts:
         if o in ("-h","--help"):
             usage()

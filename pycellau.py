@@ -47,17 +47,32 @@ seed = [
 run3D(10,10,pycellau3d.GoLCell,seed,1)
 """
 if __name__ == "__main__":
+    ins = ["-h","-l","-c","-n","-d"]
+    insWord = ["--help", "--length", "--cell", "--num", "--delay"]
+    opts = []
+    used = []
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hl:n:c:d",
-                                   ["help", "length", "num", "cell", "delay"])
-    except getopt.GetoptError as err2d:
-        try:
-            opts, args = getopt.getopt(sys.argv[1:],"hx:y:n:c:d",
-                                       ["help", "xlength", "ylength", "num", "cell", "delay"])
-        except getopt.GetoptError as err3d:
-            print(str(err3d))
-            usage()
-            sys.exit()
+        for i in range(0,len(sys.argv[1:]),2):
+            if (sys.argv[1+i] in ins or sys.argv[1+i] in insWord) and sys.argv[1+i] not in used:
+                opts.append([sys.argv[1+i],sys.argv[2+i]])
+                used.append(sys.argv[1+i])
+            else:
+
+                ins = ["-h","-x","-y","-c","-n","-d"]
+                insWord = ["--help", "--xlength", "--ylength", "--cell", "--num", "--delay"]
+                opts = []
+                used = []
+                for i in range(0,len(sys.argv[1:]),2):
+                    if (sys.argv[1+i] in ins or sys.argv[1+i] in insWord) and sys.argv[1+i] not in used:
+                        opts.append([sys.argv[1+i],sys.argv[2+i]])
+                        used.append(sys.argv[1+i])
+                    else:
+                        raise ValueError("Parameter error, either parameter does not exist or has been repeated: "+str(sys.argv[1+i]))
+
+    except ValueError as err:
+        print(err)
+        usage()
+        sys.exit()
 
     is2D = False
     is3DA = False

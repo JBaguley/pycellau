@@ -91,11 +91,8 @@ class Model:
             self.i[i.l] = i.copy()
 
     def update(self):
-        s = ""
         for i in self.c:
             i.update(self)
-            s+= str(i)
-        print(s)
         self.generate_list()
         for i in range(len(self.c)):
             if str(self.p[i]) != str(self.c[i]):
@@ -130,11 +127,20 @@ def run(length, cell, seed, delay=0.1):
     run_model(new_model, delay)
 
 def main():
+    ins = ["-h","-l","-c","-n","-d"]
+    insWord = ["--help", "--length", "--cell", "--num", "--delay"]
+    opts = []
+    used = []
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"hl:c:n:d",
-                                   ["help", "length", "cell", "num", "delay"])
-    except getopt.GetoptError as err:
-        print(str(err))
+        for i in range(0,len(sys.argv[1:]),2):
+            if (sys.argv[1+i] in ins or sys.argv[1+i] in insWord) and sys.argv[1+i] not in used:
+                opts.append([sys.argv[1+i],sys.argv[2+i]])
+                used.append(sys.argv[1+i])
+            else:
+                raise ValueError("Parameter error, either parameter does not exist or has been repeated: "+str(sys.argv[1+i]))
+
+    except ValueError as err:
+        print(err)
         usage()
         sys.exit()
     length, num, cell, delay = None, None, None, 0.1
