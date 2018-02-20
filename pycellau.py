@@ -1,5 +1,5 @@
-import CellularAutomata2D
-import CellularAutomata3D
+import pycellau2d
+import pycellau3d
 import getopt
 import sys
 import os
@@ -24,14 +24,14 @@ def usage():
     print("-d --delay: Delay between each iteration, for display purposes. Default 0.1s")
     print()
 
-Cell2D = CellularAutomata2D.Cell
-Cell3D = CellularAutomata3D.Cell
-run2D = CellularAutomata2D.run
-run3D = CellularAutomata3D.run
+Cell2D = pycellau2d.Cell
+Cell3D = pycellau3d.Cell
+run2D = pycellau2d.run
+run3D = pycellau3d.run
 
 """
 seed = ["-","O","-","O","-","O","-","O","O","O","O","-","-","O","-","O","-","O"]
-run2D(len(seed), CellularAutomata2D.TrafficCell, seed)
+run2D(len(seed), pycellau2d.TrafficCell, seed)
 seed = [
     ["#","#","#","#","#","#","#","#","#","#"],
     ["#","#","#","#","#","#","#","#","#","#"],
@@ -44,7 +44,7 @@ seed = [
     ["#","#","#","#","#","#","#","#","#","#"],
     ["#","#","#","#","#","#","#","#","#","#"],
 ]
-run3D(10,10,CellularAutomata3D.GoLCell,seed,1)
+run3D(10,10,pycellau3d.GoLCell,seed,1)
 """
 if __name__ == "__main__":
     try:
@@ -74,9 +74,9 @@ if __name__ == "__main__":
         usage()
         sys.exit()
     elif is2D:
-        CellularAutomata2D.main()
+        pycellau2d.main()
     elif is3DA and is3DB:
-        CellularAutomata3D.main()
+        pycellau3d.main()
     else:
         usage()
         sys.exit()
